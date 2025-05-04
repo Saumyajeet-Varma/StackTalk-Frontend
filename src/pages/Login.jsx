@@ -1,15 +1,25 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import axios from "../config/axios.js"
 
 const Login = () => {
 
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
 
+    const navigate = useNavigate()
+
     const handleSubmit = (e) => {
         e.preventDefault()
 
-        console.log(email, password)
+        axios.post('/users/login', { email, password })
+            .then(res => {
+                console.log(res.data)
+                navigate('/')
+            })
+            .catch(err => {
+                console.log(err.response.data)
+            })
     }
 
     return (
