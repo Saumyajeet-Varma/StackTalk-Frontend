@@ -13,8 +13,6 @@ const Homepage = () => {
     const createProject = (e) => {
         e.preventDefault()
 
-        console.log({ projectName })
-
         axios.post('/projects/create', { projectName })
             .then(res => {
                 console.log(res)
@@ -29,6 +27,7 @@ const Homepage = () => {
     }
 
     useEffect(() => {
+
         axios.get('/projects/all')
             .then(res => {
                 setProjects(res.data.data)
@@ -36,6 +35,7 @@ const Homepage = () => {
             .catch(error => {
                 console.log(error)
             })
+
     }, [])
 
     return (
