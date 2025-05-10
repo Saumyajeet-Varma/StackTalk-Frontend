@@ -1,10 +1,14 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import axios from "../config/axios.js"
 
 const Homepage = () => {
 
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [projectName, setProjectName] = useState(null)
+    const [projects, setProjects] = useState([])
+
+    const navigate = useNavigate()
 
     const createProject = (e) => {
         e.preventDefault()
@@ -24,23 +28,43 @@ const Homepage = () => {
             })
     }
 
-    const check = async () => {
-        console.log(localStorage.getItem("token"))
-    }
+    useEffect(() => {
+        axios.get('/projects/all')
+            .then(res => {
+                setProjects(res.data.data)
+            })
+            .catch(error => {
+                console.log(error)
+            })
+    }, [])
 
     return (
         <main className="p-4">
 
             <div className="projects">
-                <button className="project p-4 border border-slate-300 rounded-md flex gap-2" onClick={() => setIsModalOpen(true)}>
+                <button className="p-4 border border-slate-300 rounded-md flex gap-2 mb-4" onClick={() => setIsModalOpen(true)}>
                     <i className="ri-folder-add-line"></i>
                     <p>New project</p>
                 </button>
 
-                <button className="project p-4 border border-slate-300 rounded-md flex gap-2" onClick={() => check()}>
-                    <i className="ri-folder-add-line"></i>
-                    <p>New project</p>
-                </button>
+                <div className="flex flex-row flex-wrap gap-4 w-full">
+                    {projects.map((project) => (
+                        <div key={project._id} className="project flex flex-col gap-2 cursor-pointer p-4 border border-slate-300 rounded-md w-52 hover:bg-slate-200"
+                            onClick={() => {
+                                navigate(`/project`, {
+                                    state: { project }
+                                })
+                            }}
+                        >
+                            <h2 className='font-semibold'>{project.projectName}</h2>
+                            <div className="flex gap-2">
+                                <p><small><i className="ri-user-line"></i> Collaborators</small> :</p>
+                                {project.users.length < 10 ? `0${project.users.length}` : project.users.length}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
             </div>
 
             {isModalOpen && (
