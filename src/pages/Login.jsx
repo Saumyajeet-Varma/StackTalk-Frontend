@@ -17,15 +17,13 @@ const Login = () => {
 
         axios.post('/users/login', { email, password })
             .then(res => {
-                console.log(res.data)
-
-                localStorage.setItem('token', res.data.token)
-                setUser(res.data.user)
+                localStorage.setItem('token', res.data.data.token)
+                setUser(res.data.data.user)
 
                 navigate('/')
             })
             .catch(err => {
-                console.log(err.response.data)
+                console.log(err)
             })
     }
 

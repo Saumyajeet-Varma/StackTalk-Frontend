@@ -18,10 +18,8 @@ const Register = () => {
 
         axios.post("/users/register", { username, email, password })
             .then(res => {
-                console.log(res.data)
-
-                localStorage.setItem('token', res.data.token)
-                setUser(res.data.user)
+                localStorage.setItem('token', res.data.data.token)
+                setUser(res.data.data.user)
 
                 navigate('/')
             })

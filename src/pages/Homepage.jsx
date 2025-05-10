@@ -14,7 +14,6 @@ const Homepage = () => {
         axios.post('/projects/create', { projectName })
             .then(res => {
                 console.log(res)
-                console.log("Project created successfully")
             })
             .catch(error => {
                 console.log(error)
@@ -25,11 +24,20 @@ const Homepage = () => {
             })
     }
 
+    const check = async () => {
+        console.log(localStorage.getItem("token"))
+    }
+
     return (
         <main className="p-4">
 
             <div className="projects">
                 <button className="project p-4 border border-slate-300 rounded-md flex gap-2" onClick={() => setIsModalOpen(true)}>
+                    <i className="ri-folder-add-line"></i>
+                    <p>New project</p>
+                </button>
+
+                <button className="project p-4 border border-slate-300 rounded-md flex gap-2" onClick={() => check()}>
                     <i className="ri-folder-add-line"></i>
                     <p>New project</p>
                 </button>
