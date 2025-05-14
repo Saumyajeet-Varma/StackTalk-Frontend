@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react"
+import { createRef, useContext, useEffect, useState } from "react"
 import { useLocation } from "react-router-dom"
 import axios from "../config/axios.js"
 import { initializeSocket, receiveMessageSocket, sendMessageSocket } from "../config/socket.js"
@@ -16,6 +16,8 @@ const Project = () => {
     const [users, setUsers] = useState([])
     const [project, setProject] = useState(location.state.project)
     const [message, setMessage] = useState('')
+
+    const messageBox = createRef()
 
     const handleUserClick = (id) => {
 
@@ -48,12 +50,16 @@ const Project = () => {
 
     const sendMessage = () => {
 
-        console.log(user)
+        if (!message) {
+            return
+        }
 
         sendMessageSocket('project-message', {
             message,
-            sender: user._id
+            sender: user
         })
+
+        appendOutgoingMessage(message)
 
         setMessage("")
     }
@@ -63,7 +69,7 @@ const Project = () => {
         initializeSocket(project._id)
 
         receiveMessageSocket('project-message', data => {
-            console.log(data)
+            appendIncomingMessage(data)
         })
 
         axios.get(`projects/project/${location.state.project._id}`)
@@ -84,11 +90,49 @@ const Project = () => {
 
     }, [location.state.project._id, project._id])
 
+    const appendIncomingMessage = (messageObject) => {
+
+        const messageBox = document.querySelector('.msg-box')
+
+        const message = document.createElement('div')
+
+        message.classList.add('incoming', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-50', 'p-2', 'w-fit', 'rounded-md')
+        message.innerHTML = `<small className="opacity-65 text-sm">${messageObject.sender.username}</small>
+                            <p className="text-ms">${messageObject.message}</p>`
+
+        messageBox.appendChild(message)
+        scrollToBottom()
+    }
+
+    const appendOutgoingMessage = (messageText) => {
+
+        const messageBox = document.querySelector('.msg-box')
+
+        const message = document.createElement('div')
+
+        message.classList.add('outgoing', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-300', 'p-2', 'w-fit', 'rounded-md', 'ml-auto')
+        message.innerHTML = `<p className="text-ms">${messageText}</p>`
+
+        messageBox.appendChild(message)
+        scrollToBottom()
+    }
+
+    const scrollToBottom = () => {
+        messageBox.current.scrollTop = messageBox.current.scrollHeight
+    }
+
+    // useEffect(() => {
+    //     if (messageBox.current) {
+    //         messageBox.current.scrollTop = messageBox.current.scrollHeight;
+    //     }
+    // }, [chatMessages]);
+
+
     return (
         <main className="h-screen w-screen flex">
 
-            <section className="left relative h-full min-w-96 bg-slate-200 w-1/4 flex flex-col">
-                <div className="chat-header px-4 py-2 flex justify-between w-full items-center bg-slate-300">
+            <section className="left relative h-screen min-w-96 w-1/4 flex flex-col">
+                <div className="chat-header px-4 py-2 flex justify-between w-full items-center bg-slate-300 sticky top-0 z-20">
                     <button className='flex gap-2' onClick={() => setIsModalOpen(true)}>
                         <i className="ri-add-fill"></i>
                         <p>Add collaborator</p>
@@ -98,9 +142,10 @@ const Project = () => {
                     </button>
                 </div>
 
-                <div className="chat-app flex-grow flex flex-col relative">
-                    <div className="msg-box flex-grow flex flex-col p-2 gap-1 ">
-                        <div className="incoming message max-w-80 flex flex-col bg-slate-50 p-2 w-fit rounded-md">
+                <div className="chat-app flex-grow flex flex-col relative bg-slate-200">
+                    <div className="flex flex-col flex-grow w-full h-fit">
+                        <div ref={messageBox} className="msg-box flex-grow flex flex-col p-2 gap-1 overflow-auto max-h-full">
+                            {/* <div className="incoming message max-w-80 flex flex-col bg-slate-50 p-2 w-fit rounded-md">
                             <small className="opacity-65 text-sm">username01</small>
                             <p className="text-ms">Hello world auidcfuiab</p>
                         </div>
@@ -108,18 +153,19 @@ const Project = () => {
                         <div className="outgoing message max-w-80 flex flex-col bg-slate-300 p-2 w-fit rounded-md ml-auto">
                             <small className="opacity-65 text-sm">username00</small>
                             <p className="text-ms">Hello world lorem saiubcuabdb diufv ubasd asiuvf vsodubsdbf9b</p>
+                        </div> */}
                         </div>
-                    </div>
-
-                    <div className="input-field w-full flex">
-                        <input type="text" placeholder="Enter message" value={message} onChange={(e) => setMessage(e.target.value)} className="py-2 px-4 border-none outline-none w-4/5" />
-                        <button onClick={sendMessage} className='px-4 bg-slate-300 w-1/5'>
-                            <i className="ri-send-plane-fill"></i>
-                        </button>
                     </div>
                 </div>
 
-                <div className={`sidebar bg-slate-200 h-full w-full absolute transition-all ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} top-0`}>
+                <div className="input-field w-full flex sticky bottom-0 z-20">
+                    <input type="text" placeholder="Enter message" value={message} onChange={(e) => setMessage(e.target.value)} className="py-2 px-4 border-none outline-none w-4/5" />
+                    <button onClick={sendMessage} className='px-4 bg-slate-300 w-1/5'>
+                        <i className="ri-send-plane-fill"></i>
+                    </button>
+                </div>
+
+                <div className={`sidebar bg-slate-200 h-full w-full absolute transition-all z-30 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} top-0`}>
                     <div className="sidebar-header flex justify-between items-center px-4 py-2 bg-slate-300">
                         <h1 className="font-semibold text-lg">Collaborators</h1>
                         <button className='p-2' onClick={() => setIsSidebarOpen(false)}>
