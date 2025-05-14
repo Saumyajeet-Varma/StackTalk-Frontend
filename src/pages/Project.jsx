@@ -1,17 +1,21 @@
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { useLocation } from "react-router-dom"
 import axios from "../config/axios.js"
-import { initializeSocket } from "../config/socket.js"
+import { initializeSocket, receiveMessageSocket, sendMessageSocket } from "../config/socket.js"
+import { UserContext } from "../context/user.context.jsx"
 
 const Project = () => {
 
     const location = useLocation()
+
+    const { user } = useContext(UserContext)
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [selectedUserId, setSelectedUserId] = useState(new Set())
     const [users, setUsers] = useState([])
     const [project, setProject] = useState(location.state.project)
+    const [message, setMessage] = useState('')
 
     const handleUserClick = (id) => {
 
@@ -42,9 +46,25 @@ const Project = () => {
             })
     }
 
+    const sendMessage = () => {
+
+        console.log(user)
+
+        sendMessageSocket('project-message', {
+            message,
+            sender: user._id
+        })
+
+        setMessage("")
+    }
+
     useEffect(() => {
 
-        initializeSocket()
+        initializeSocket(project._id)
+
+        receiveMessageSocket('project-message', data => {
+            console.log(data)
+        })
 
         axios.get(`projects/project/${location.state.project._id}`)
             .then(res => {
@@ -62,7 +82,7 @@ const Project = () => {
                 console.log(err)
             })
 
-    }, [location.state.project._id])
+    }, [location.state.project._id, project._id])
 
     return (
         <main className="h-screen w-screen flex">
@@ -92,8 +112,8 @@ const Project = () => {
                     </div>
 
                     <div className="input-field w-full flex">
-                        <input type="text" placeholder="Enter message" className="py-2 px-4 border-none outline-none w-4/5" />
-                        <button className='px-4 bg-slate-300 w-1/5'>
+                        <input type="text" placeholder="Enter message" value={message} onChange={(e) => setMessage(e.target.value)} className="py-2 px-4 border-none outline-none w-4/5" />
+                        <button onClick={sendMessage} className='px-4 bg-slate-300 w-1/5'>
                             <i className="ri-send-plane-fill"></i>
                         </button>
                     </div>
