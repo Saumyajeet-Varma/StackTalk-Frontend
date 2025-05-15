@@ -1,5 +1,6 @@
 import { createRef, useContext, useEffect, useState } from "react"
 import { useLocation } from "react-router-dom"
+// import Markdown from 'markdown-to-jsx'
 import axios from "../config/axios.js"
 import { initializeSocket, receiveMessageSocket, sendMessageSocket } from "../config/socket.js"
 import { UserContext } from "../context/user.context.jsx"
@@ -96,6 +97,21 @@ const Project = () => {
 
         const message = document.createElement('div')
 
+        // ! Markdown returns object
+        // if (messageObject.sender._id === 'ai') {
+
+        //     const markdown = <Markdown>{messageObject.message}</Markdown>
+
+        //     message.classList.add('incoming', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-50', 'p-2', 'w-fit', 'rounded-md')
+        //     message.innerHTML = `<small className="opacity-65 text-sm">${messageObject.sender.username}</small>
+        //                     <p className="text-ms">${markdown}</p>`
+        // }
+        // else {
+        //     message.classList.add('incoming', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-50', 'p-2', 'w-fit', 'rounded-md')
+        //     message.innerHTML = `<small className="opacity-65 text-sm">${messageObject.sender.username}</small>
+        //                     <p className="text-ms">${messageObject.message}</p>`
+        // }
+
         message.classList.add('incoming', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-50', 'p-2', 'w-fit', 'rounded-md')
         message.innerHTML = `<small className="opacity-65 text-sm">${messageObject.sender.username}</small>
                             <p className="text-ms">${messageObject.message}</p>`
@@ -121,11 +137,12 @@ const Project = () => {
         messageBox.current.scrollTop = messageBox.current.scrollHeight
     }
 
+    // TODO: ScrollToBottom
     // useEffect(() => {
     //     if (messageBox.current) {
     //         messageBox.current.scrollTop = messageBox.current.scrollHeight;
     //     }
-    // }, [chatMessages]);
+    // }, []);
 
 
     return (
