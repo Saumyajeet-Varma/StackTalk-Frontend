@@ -1,9 +1,25 @@
 import { createRef, useContext, useEffect, useState } from "react"
 import { useLocation } from "react-router-dom"
-// import Markdown from 'markdown-to-jsx'
+import Markdown from 'markdown-to-jsx'
 import axios from "../config/axios.js"
 import { initializeSocket, receiveMessageSocket, sendMessageSocket } from "../config/socket.js"
 import { UserContext } from "../context/user.context.jsx"
+
+// function SyntaxHighlightedCode(props) {
+
+//     const ref = useRef(null)
+
+//     useEffect(() => {
+//         // eslint-disable-next-line react/prop-types
+//         if (ref.current && props.className?.includes('lang-') && window.hljs) {
+//             window.hljs.highlightElement(ref.current)
+//             ref.current.removeAttribute('data-highlighted')
+//         }
+//         // eslint-disable-next-line react/prop-types
+//     }, [props.className, props.children])
+
+//     return <code {...props} ref={ref} />
+// }
 
 const Project = () => {
 
@@ -17,6 +33,7 @@ const Project = () => {
     const [users, setUsers] = useState([])
     const [project, setProject] = useState(location.state.project)
     const [message, setMessage] = useState('')
+    const [messages, setMessages] = useState([])
 
     const messageBox = createRef()
 
@@ -60,7 +77,7 @@ const Project = () => {
             sender: user
         })
 
-        appendOutgoingMessage(message)
+        setMessages(prevMessages => [...prevMessages, { sender: user, message }])
 
         setMessage("")
     }
@@ -70,7 +87,7 @@ const Project = () => {
         initializeSocket(project._id)
 
         receiveMessageSocket('project-message', data => {
-            appendIncomingMessage(data)
+            setMessages(prevMessages => [...prevMessages, data])
         })
 
         axios.get(`projects/project/${location.state.project._id}`)
@@ -91,51 +108,72 @@ const Project = () => {
 
     }, [location.state.project._id, project._id])
 
-    const appendIncomingMessage = (messageObject) => {
+    // function WriteAiMessage(message) {
 
-        const messageBox = document.querySelector('.msg-box')
+    //     const messageObject = JSON.parse(message)
 
-        const message = document.createElement('div')
+    //     return (
+    //         <div
+    //             className='overflow-auto bg-slate-950 text-white rounded-sm p-2'
+    //         >
+    //             <Markdown
+    //                 // eslint-disable-next-line react/no-children-prop
+    //                 children={messageObject.text}
+    //                 options={{
+    //                     overrides: {
+    //                         code: SyntaxHighlightedCode,
+    //                     },
+    //                 }}
+    //             />
+    //         </div>)
+    // }
 
-        // ! Markdown returns object
-        // if (messageObject.sender._id === 'ai') {
+    // const appendIncomingMessage = (messageObject) => {
 
-        //     const markdown = <Markdown>{messageObject.message}</Markdown>
+    //     const messageBox = document.querySelector('.msg-box')
 
-        //     message.classList.add('incoming', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-50', 'p-2', 'w-fit', 'rounded-md')
-        //     message.innerHTML = `<small className="opacity-65 text-sm">${messageObject.sender.username}</small>
-        //                     <p className="text-ms">${markdown}</p>`
-        // }
-        // else {
-        //     message.classList.add('incoming', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-50', 'p-2', 'w-fit', 'rounded-md')
-        //     message.innerHTML = `<small className="opacity-65 text-sm">${messageObject.sender.username}</small>
-        //                     <p className="text-ms">${messageObject.message}</p>`
-        // }
+    //     const message = document.createElement('div')
 
-        message.classList.add('incoming', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-50', 'p-2', 'w-fit', 'rounded-md')
-        message.innerHTML = `<small className="opacity-65 text-sm">${messageObject.sender.username}</small>
-                            <p className="text-ms">${messageObject.message}</p>`
+    //     // ! Markdown returns object
+    //     // if (messageObject.sender._id === 'ai') {
 
-        messageBox.appendChild(message)
-        scrollToBottom()
-    }
+    //     //     const markdown = <Markdown>{messageObject.message}</Markdown>
 
-    const appendOutgoingMessage = (messageText) => {
+    //     //     message.classList.add('incoming', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-50', 'p-2', 'w-fit', 'rounded-md')
+    //     //     message.innerHTML = `<small className="opacity-65 text-sm">${messageObject.sender.username}</small>
+    //     //                     <p className="text-ms">${markdown}</p>`
+    //     // }
+    //     // else {
+    //     //     message.classList.add('incoming', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-50', 'p-2', 'w-fit', 'rounded-md')
+    //     //     message.innerHTML = `<small className="opacity-65 text-sm">${messageObject.sender.username}</small>
+    //     //                     <p className="text-ms">${messageObject.message}</p>`
+    //     // }
 
-        const messageBox = document.querySelector('.msg-box')
+    //     message.classList.add('incoming', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-50', 'p-2', 'w-fit', 'rounded-md')
+    //     message.innerHTML = `<small className="opacity-65 text-sm">${messageObject.sender.username}</small>
+    //                         <p className="text-ms">${messageObject.message}</p>`
 
-        const message = document.createElement('div')
+    //     messageBox.appendChild(message)
+    //     scrollToBottom()
+    // }
 
-        message.classList.add('outgoing', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-300', 'p-2', 'w-fit', 'rounded-md', 'ml-auto')
-        message.innerHTML = `<p className="text-ms">${messageText}</p>`
+    // const appendOutgoingMessage = (messageText) => {
 
-        messageBox.appendChild(message)
-        scrollToBottom()
-    }
+    //     const messageBox = document.querySelector('.msg-box')
 
-    const scrollToBottom = () => {
-        messageBox.current.scrollTop = messageBox.current.scrollHeight
-    }
+    //     const message = document.createElement('div')
+
+    //     message.classList.add('outgoing', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-300', 'p-2', 'w-fit', 'rounded-md', 'ml-auto')
+    //     message.innerHTML = `<p className="text-ms">${messageText}</p>`
+
+    //     messageBox.appendChild(message)
+    //     scrollToBottom()
+    // }
+
+    // ? ScrollToBottom
+    // const scrollToBottom = () => {
+    //     messageBox.current.scrollTop = messageBox.current.scrollHeight
+    // }
 
     // TODO: ScrollToBottom
     // useEffect(() => {
@@ -162,6 +200,18 @@ const Project = () => {
                 <div className="chat-app flex-grow flex flex-col relative bg-slate-200">
                     <div className="flex flex-col flex-grow w-full h-fit">
                         <div ref={messageBox} className="msg-box flex-grow flex flex-col p-2 gap-1 overflow-auto max-h-full">
+                            {messages.map((msg, index) => (
+                                <div key={index} className={`${msg.sender._id === 'ai' ? 'max-w-80' : 'max-w-52'} ${msg.sender._id == user._id.toString() && 'ml-auto'}  message flex flex-col p-2 bg-slate-50 w-fit rounded-md`}>
+                                    <small className='opacity-65 text-xs'>{msg.sender.username}</small>
+                                    {/* <div className={`text-sm`}> */}
+                                    <div className={`text-sm ${msg.sender._id === 'ai' ? 'text-white bg-slate-900 py-1 px-3 overflow-x-auto' : ''}`}>
+                                        {msg.sender._id === 'ai' ?
+                                            <Markdown>{msg.message}</Markdown>
+                                            : <p>{msg.message}</p>}
+                                    </div>
+                                </div>
+                            ))}
+
                             {/* <div className="incoming message max-w-80 flex flex-col bg-slate-50 p-2 w-fit rounded-md">
                             <small className="opacity-65 text-sm">username01</small>
                             <p className="text-ms">Hello world auidcfuiab</p>
@@ -205,35 +255,37 @@ const Project = () => {
 
             {/* <section className="right"></section> */}
 
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="bg-white p-4 rounded-md w-96 max-w-full relative">
-                        <header className='flex justify-between items-center mb-4'>
-                            <h2 className='text-xl font-semibold'>Select User</h2>
-                            <button onClick={() => setIsModalOpen(false)} className='p-2'>
-                                <i className="ri-close-fill"></i>
-                            </button>
-                        </header>
-                        <div className="users-list flex flex-col gap-2 mb-16 max-h-96 overflow-auto">
-                            {users.map(user => (
-                                <div key={user._id} className={`user cursor-pointer hover:bg-slate-200  p-2 flex gap-2 items-center ${Array.from(selectedUserId).indexOf(user._id) != -1 ? 'bg-slate-200' : ""}`} onClick={() => handleUserClick(user._id)}>
-                                    <div className='aspect-square relative rounded-full w-fit h-fit flex items-center justify-center p-5 text-white bg-slate-600'>
-                                        <i className="ri-user-fill absolute"></i>
+            {
+                isModalOpen && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                        <div className="bg-white p-4 rounded-md w-96 max-w-full relative">
+                            <header className='flex justify-between items-center mb-4'>
+                                <h2 className='text-xl font-semibold'>Select User</h2>
+                                <button onClick={() => setIsModalOpen(false)} className='p-2'>
+                                    <i className="ri-close-fill"></i>
+                                </button>
+                            </header>
+                            <div className="users-list flex flex-col gap-2 mb-16 max-h-96 overflow-auto">
+                                {users.map(user => (
+                                    <div key={user._id} className={`user cursor-pointer hover:bg-slate-200  p-2 flex gap-2 items-center ${Array.from(selectedUserId).indexOf(user._id) != -1 ? 'bg-slate-200' : ""}`} onClick={() => handleUserClick(user._id)}>
+                                        <div className='aspect-square relative rounded-full w-fit h-fit flex items-center justify-center p-5 text-white bg-slate-600'>
+                                            <i className="ri-user-fill absolute"></i>
+                                        </div>
+                                        <h1 className='font-semibold text-lg'>{user.username}</h1>
                                     </div>
-                                    <h1 className='font-semibold text-lg'>{user.username}</h1>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
+                            <button
+                                onClick={addCollaborators}
+                                className='absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-blue-600 text-white rounded-md'>
+                                Add Collaborators
+                            </button>
                         </div>
-                        <button
-                            onClick={addCollaborators}
-                            className='absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-blue-600 text-white rounded-md'>
-                            Add Collaborators
-                        </button>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-        </main>
+        </main >
     )
 }
 
