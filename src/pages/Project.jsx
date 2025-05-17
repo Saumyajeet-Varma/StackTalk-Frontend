@@ -38,6 +38,20 @@ const Project = () => {
     const [project, setProject] = useState(location.state.project)
     const [message, setMessage] = useState('')
     const [messages, setMessages] = useState([])
+    const [fileTree, setFileTree] = useState({
+        "app.js": {
+            content: `const express = require('express')`
+        },
+        "package.json": {
+            content: `{
+                "name": "temp-backend"
+            }`
+        }
+    })
+    const [currFile, setCurrFile] = useState(null)
+    const [openFiles, setOpenFiles] = useState([])
+
+    Object.keys(fileTree).map(file => console.log(file))
 
     const messageBox = createRef()
 
@@ -86,34 +100,7 @@ const Project = () => {
         setMessage("")
     }
 
-    useEffect(() => {
-
-        initializeSocket(project._id)
-
-        receiveMessageSocket('project-message', data => {
-            setMessages(prevMessages => [...prevMessages, data])
-        })
-
-        axios.get(`projects/project/${location.state.project._id}`)
-            .then(res => {
-                setProject(res.data.data)
-            })
-            .catch(err => {
-                console.log(err)
-            })
-
-        axios.get("/users/all")
-            .then(res => {
-                setUsers(res.data.data)
-            })
-            .catch(err => {
-                console.log(err)
-            })
-
-    }, [location.state.project._id, project._id])
-
-    // ? AIMessages
-    function WriteAiMessage(message) {
+    const WriteAiMessage = (message) => {
 
         let messageObject = { text: message }
 
@@ -139,6 +126,32 @@ const Project = () => {
                 />
             </div>)
     }
+
+    useEffect(() => {
+
+        initializeSocket(project._id)
+
+        receiveMessageSocket('project-message', data => {
+            setMessages(prevMessages => [...prevMessages, data])
+        })
+
+        axios.get(`projects/project/${location.state.project._id}`)
+            .then(res => {
+                setProject(res.data.data)
+            })
+            .catch(err => {
+                console.log(err)
+            })
+
+        axios.get("/users/all")
+            .then(res => {
+                setUsers(res.data.data)
+            })
+            .catch(err => {
+                console.log(err)
+            })
+
+    }, [location.state.project._id, project._id])
 
     // ? ScrollToBottom
     // const scrollToBottom = () => {
@@ -223,37 +236,92 @@ const Project = () => {
                 </div>
             </section>
 
-            {/* <section className="right"></section> */}
+            <section className="right h-screen min-w-96 w-3/4 flex">
+                <div className="explorer h-full w-1/5 bg-slate-500 min-w-48 border-x-2 border-slate-600">
+                    <div className="explorer-header flex justify-start items-center p-1 bg-slate-300">
+                        <div className='p-2'>
+                            <i className="ri-folder-fill text-lg"></i>
+                        </div>
+                        <h1 className="font-semibold">Explorer</h1>
+                    </div>
 
-            {
-                isModalOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                        <div className="bg-white p-4 rounded-md w-96 max-w-full relative">
-                            <header className='flex justify-between items-center mb-4'>
-                                <h2 className='text-xl font-semibold'>Select User</h2>
-                                <button onClick={() => setIsModalOpen(false)} className='p-2'>
-                                    <i className="ri-close-fill"></i>
-                                </button>
-                            </header>
-                            <div className="users-list flex flex-col gap-2 mb-16 max-h-96 overflow-auto">
-                                {users.map(user => (
-                                    <div key={user._id} className={`user cursor-pointer hover:bg-slate-200  p-2 flex gap-2 items-center ${Array.from(selectedUserId).indexOf(user._id) != -1 ? 'bg-slate-200' : ""}`} onClick={() => handleUserClick(user._id)}>
-                                        <div className='aspect-square relative rounded-full w-fit h-fit flex items-center justify-center p-5 text-white bg-slate-600'>
-                                            <i className="ri-user-fill absolute"></i>
-                                        </div>
-                                        <h1 className='font-semibold text-lg'>{user.username}</h1>
-                                    </div>
-                                ))}
-                            </div>
-                            <button
-                                onClick={addCollaborators}
-                                className='absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-blue-600 text-white rounded-md'>
-                                Add Collaborators
+                    <div className="file-tree w-full flex flex-col gap-[1px]">
+                        {Object.keys(fileTree).map((file, index) => (
+                            <button key={index} onClick={() => {
+                                setCurrFile(file)
+                                setOpenFiles([ ...new Set([ ...openFiles, file ]) ])
+                            }} className={`file w-full ${currFile === file ? "bg-slate-600 text-white" : "bg-slate-400"} hover:bg-slate-600 hover:text-white cursor-pointer px-3 py-1`}>
+                                <p className="font-semibold text-start">{file}</p>
                             </button>
+                        ))}
+                    </div>
+                </div>
+
+                {currFile && <div className="code-editor h-full w-4/5 min-w-[500px] flex flex-col">
+                    {/* {currFile && <div className="code-editor-header flex justify-between items-center p-1 px-2 bg-slate-300">
+                        <div className="flex justify-start items-center">
+                            <div className='p-2'>
+                                <i className="ri-file-fill text-lg"></i>
+                            </div>
+                            <h1 className="font-semibold">{currFile}</h1>
+                        </div>
+                        <button className='p-2' onClick={() => setCurrFile(null)}>
+                            <i className="ri-close-fill text-lg"></i>
+                        </button>
+                    </div>} */}
+
+                    <div className="top bg-slate-300">
+                        <div className="flex justify-start items-center p-1">
+                            <div className='p-2'>
+                                <i className="ri-file-fill text-lg"></i>
+                            </div>
+                            <h1 className="font-semibold">{currFile}</h1>
+                        </div>
+                        <div className="tab-bar flex overflow-scroll no-scrollbar">
+                            {openFiles.map((file, index) => (
+                                <button key={index} onClick={() => setCurrFile(file)} className={`text-md font-semibold px-3 py-1 w-fit ${currFile === file ? "bg-slate-600 text-white" : "bg-slate-400"} hover:bg-slate-600 hover:text-white border-x-[1px] border-slate-300`}>{file}</button>
+                            ))}
                         </div>
                     </div>
-                )
-            }
+
+                    <div className="bottom flex-grow flex flex-col">
+                        {fileTree[currFile] && (<textarea value={fileTree[currFile].content} onChange={(e) => {setFileTree({
+                                ...fileTree,
+                                [currFile]: {
+                                    content: e.target.value
+                                }
+                            })}} className="w-full flex-grow"></textarea>)}
+                    </div>
+                </div>}
+            </section>
+
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className="bg-white p-4 rounded-md w-96 max-w-full relative">
+                        <header className='flex justify-between items-center mb-4'>
+                            <h2 className='text-xl font-semibold'>Select User</h2>
+                            <button onClick={() => setIsModalOpen(false)} className='p-2'>
+                                <i className="ri-close-fill"></i>
+                            </button>
+                        </header>
+                        <div className="users-list flex flex-col gap-2 mb-16 max-h-96 overflow-auto">
+                            {users.map(user => (
+                                <div key={user._id} className={`user cursor-pointer hover:bg-slate-200  p-2 flex gap-2 items-center ${Array.from(selectedUserId).indexOf(user._id) != -1 ? 'bg-slate-200' : ""}`} onClick={() => handleUserClick(user._id)}>
+                                    <div className='aspect-square relative rounded-full w-fit h-fit flex items-center justify-center p-5 text-white bg-slate-600'>
+                                        <i className="ri-user-fill absolute"></i>
+                                    </div>
+                                    <h1 className='font-semibold text-lg'>{user.username}</h1>
+                                </div>
+                            ))}
+                        </div>
+                        <button
+                            onClick={addCollaborators}
+                            className='absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-blue-600 text-white rounded-md'>
+                            Add Collaborators
+                        </button>
+                    </div>
+                </div>
+            )}
 
         </main>
     )
