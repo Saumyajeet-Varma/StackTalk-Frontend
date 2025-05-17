@@ -1,25 +1,29 @@
-import { createRef, useContext, useEffect, useState } from "react"
+import { createRef, useContext, useEffect, useRef, useState } from "react"
 import { useLocation } from "react-router-dom"
 import Markdown from 'markdown-to-jsx'
+import hljs from 'highlight.js';
 import axios from "../config/axios.js"
 import { initializeSocket, receiveMessageSocket, sendMessageSocket } from "../config/socket.js"
 import { UserContext } from "../context/user.context.jsx"
 
-// function SyntaxHighlightedCode(props) {
+window.hljs = hljs;
 
-//     const ref = useRef(null)
+// TODO: SyntaxHighlightedCode
+function SyntaxHighlightedCode(props) {
 
-//     useEffect(() => {
-//         // eslint-disable-next-line react/prop-types
-//         if (ref.current && props.className?.includes('lang-') && window.hljs) {
-//             window.hljs.highlightElement(ref.current)
-//             ref.current.removeAttribute('data-highlighted')
-//         }
-//         // eslint-disable-next-line react/prop-types
-//     }, [props.className, props.children])
+    const ref = useRef(null)
 
-//     return <code {...props} ref={ref} />
-// }
+    useEffect(() => {
+        // eslint-disable-next-line react/prop-types
+        if (ref.current && props.className?.includes('lang-') && window.hljs) {
+            window.hljs.highlightElement(ref.current)
+            ref.current.removeAttribute('data-highlighted')
+        }
+        // eslint-disable-next-line react/prop-types
+    }, [props.className, props.children])
+
+    return <code {...props} ref={ref} />
+}
 
 const Project = () => {
 
@@ -108,67 +112,33 @@ const Project = () => {
 
     }, [location.state.project._id, project._id])
 
-    // function WriteAiMessage(message) {
+    // ? AIMessages
+    function WriteAiMessage(message) {
 
-    //     const messageObject = JSON.parse(message)
+        let messageObject = { text: message }
 
-    //     return (
-    //         <div
-    //             className='overflow-auto bg-slate-950 text-white rounded-sm p-2'
-    //         >
-    //             <Markdown
-    //                 // eslint-disable-next-line react/no-children-prop
-    //                 children={messageObject.text}
-    //                 options={{
-    //                     overrides: {
-    //                         code: SyntaxHighlightedCode,
-    //                     },
-    //                 }}
-    //             />
-    //         </div>)
-    // }
+        try {
+            messageObject = JSON.parse(message)
+        }
+        catch (err) {
+            console.log(err)
+        }
 
-    // const appendIncomingMessage = (messageObject) => {
-
-    //     const messageBox = document.querySelector('.msg-box')
-
-    //     const message = document.createElement('div')
-
-    //     // ! Markdown returns object
-    //     // if (messageObject.sender._id === 'ai') {
-
-    //     //     const markdown = <Markdown>{messageObject.message}</Markdown>
-
-    //     //     message.classList.add('incoming', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-50', 'p-2', 'w-fit', 'rounded-md')
-    //     //     message.innerHTML = `<small className="opacity-65 text-sm">${messageObject.sender.username}</small>
-    //     //                     <p className="text-ms">${markdown}</p>`
-    //     // }
-    //     // else {
-    //     //     message.classList.add('incoming', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-50', 'p-2', 'w-fit', 'rounded-md')
-    //     //     message.innerHTML = `<small className="opacity-65 text-sm">${messageObject.sender.username}</small>
-    //     //                     <p className="text-ms">${messageObject.message}</p>`
-    //     // }
-
-    //     message.classList.add('incoming', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-50', 'p-2', 'w-fit', 'rounded-md')
-    //     message.innerHTML = `<small className="opacity-65 text-sm">${messageObject.sender.username}</small>
-    //                         <p className="text-ms">${messageObject.message}</p>`
-
-    //     messageBox.appendChild(message)
-    //     scrollToBottom()
-    // }
-
-    // const appendOutgoingMessage = (messageText) => {
-
-    //     const messageBox = document.querySelector('.msg-box')
-
-    //     const message = document.createElement('div')
-
-    //     message.classList.add('outgoing', 'message', 'max-w-80', 'flex', 'flex-col', 'bg-slate-300', 'p-2', 'w-fit', 'rounded-md', 'ml-auto')
-    //     message.innerHTML = `<p className="text-ms">${messageText}</p>`
-
-    //     messageBox.appendChild(message)
-    //     scrollToBottom()
-    // }
+        return (
+            <div
+                className='overflow-auto bg-slate-950 text-white rounded-sm p-2'
+            >
+                <Markdown
+                    // eslint-disable-next-line react/no-children-prop
+                    children={messageObject.text}
+                    options={{
+                        overrides: {
+                            code: SyntaxHighlightedCode,
+                        },
+                    }}
+                />
+            </div>)
+    }
 
     // ? ScrollToBottom
     // const scrollToBottom = () => {
@@ -206,7 +176,7 @@ const Project = () => {
                                     {/* <div className={`text-sm`}> */}
                                     <div className={`text-sm ${msg.sender._id === 'ai' ? 'text-white bg-slate-900 py-1 px-3 overflow-x-auto' : ''}`}>
                                         {msg.sender._id === 'ai' ?
-                                            <Markdown>{msg.message}</Markdown>
+                                            WriteAiMessage(msg.message)
                                             : <p>{msg.message}</p>}
                                     </div>
                                 </div>
@@ -285,7 +255,7 @@ const Project = () => {
                 )
             }
 
-        </main >
+        </main>
     )
 }
 
