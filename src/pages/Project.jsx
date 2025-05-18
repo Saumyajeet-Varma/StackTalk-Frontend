@@ -38,20 +38,9 @@ const Project = () => {
     const [project, setProject] = useState(location.state.project)
     const [message, setMessage] = useState('')
     const [messages, setMessages] = useState([])
-    const [fileTree, setFileTree] = useState({
-        "app.js": {
-            content: `const express = require('express')`
-        },
-        "package.json": {
-            content: `{
-                "name": "temp-backend"
-            }`
-        }
-    })
+    const [fileTree, setFileTree] = useState({})
     const [currFile, setCurrFile] = useState(null)
     const [openFiles, setOpenFiles] = useState([])
-
-    Object.keys(fileTree).map(file => console.log(file))
 
     const messageBox = createRef()
 
@@ -132,6 +121,14 @@ const Project = () => {
         initializeSocket(project._id)
 
         receiveMessageSocket('project-message', data => {
+
+            const message = (JSON.parse(data.message))
+
+            if(message.fileTree) {
+                setFileTree(message.fileTree)
+                console.log(message.fileTree)
+            }
+
             setMessages(prevMessages => [...prevMessages, data])
         })
 
@@ -258,18 +255,6 @@ const Project = () => {
                 </div>
 
                 {currFile && <div className="code-editor h-full w-4/5 min-w-[500px] flex flex-col">
-                    {/* {currFile && <div className="code-editor-header flex justify-between items-center p-1 px-2 bg-slate-300">
-                        <div className="flex justify-start items-center">
-                            <div className='p-2'>
-                                <i className="ri-file-fill text-lg"></i>
-                            </div>
-                            <h1 className="font-semibold">{currFile}</h1>
-                        </div>
-                        <button className='p-2' onClick={() => setCurrFile(null)}>
-                            <i className="ri-close-fill text-lg"></i>
-                        </button>
-                    </div>} */}
-
                     <div className="top bg-slate-300">
                         <div className="flex justify-start items-center p-1">
                             <div className='p-2'>
@@ -277,7 +262,8 @@ const Project = () => {
                             </div>
                             <h1 className="font-semibold">{currFile}</h1>
                         </div>
-                        <div className="tab-bar flex overflow-scroll no-scrollbar">
+
+                        <div className="tab-bar flex bg-slate-200 overflow-scroll no-scrollbar">
                             {openFiles.map((file, index) => (
                                 <button key={index} onClick={() => setCurrFile(file)} className={`text-md font-semibold px-3 py-1 w-fit ${currFile === file ? "bg-slate-600 text-white" : "bg-slate-400"} hover:bg-slate-600 hover:text-white border-x-[1px] border-slate-300`}>{file}</button>
                             ))}
@@ -285,12 +271,14 @@ const Project = () => {
                     </div>
 
                     <div className="bottom flex-grow flex flex-col">
-                        {fileTree[currFile] && (<textarea value={fileTree[currFile].content} onChange={(e) => {setFileTree({
+                        {fileTree[currFile] && (<textarea value={fileTree[currFile].file.contents} onChange={(e) => {setFileTree({
                                 ...fileTree,
                                 [currFile]: {
-                                    content: e.target.value
+                                    file: {
+                                        contents: e.target.value
+                                    }
                                 }
-                            })}} className="w-full flex-grow"></textarea>)}
+                            })}} className="w-full flex-grow p-3 text-md font-semibold bg-slate-700 text-white"></textarea>)}
                     </div>
                 </div>}
             </section>
