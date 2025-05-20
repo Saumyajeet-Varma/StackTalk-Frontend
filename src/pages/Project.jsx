@@ -4,6 +4,7 @@ import Markdown from 'markdown-to-jsx'
 import hljs from 'highlight.js';
 import axios from "../config/axios.js"
 import { initializeSocket, receiveMessageSocket, sendMessageSocket } from "../config/socket.js"
+import { getWebContainer } from "../config/webContainer.js";
 import { UserContext } from "../context/user.context.jsx"
 
 window.hljs = hljs;
@@ -41,6 +42,7 @@ const Project = () => {
     const [fileTree, setFileTree] = useState({})
     const [currFile, setCurrFile] = useState(null)
     const [openFiles, setOpenFiles] = useState([])
+    const [webContainer, setWebContainer] = useState(null)
 
     const messageBox = createRef()
 
@@ -120,13 +122,18 @@ const Project = () => {
 
         initializeSocket(project._id)
 
+        if(!webContainer) {
+            getWebContainer().then(container => setWebContainer(container))
+        }
+
         receiveMessageSocket('project-message', data => {
 
             const message = (JSON.parse(data.message))
 
+            webContainer?.mount(message.fileTree)
+
             if(message.fileTree) {
                 setFileTree(message.fileTree)
-                console.log(message.fileTree)
             }
 
             setMessages(prevMessages => [...prevMessages, data])
@@ -254,13 +261,52 @@ const Project = () => {
                     </div>
                 </div>
 
-                {currFile && <div className="code-editor h-full w-4/5 min-w-[500px] flex flex-col">
+                <div className="code-editor h-full w-4/5 min-w-[500px] flex flex-col">
                     <div className="top bg-slate-300">
-                        <div className="flex justify-start items-center p-1">
-                            <div className='p-2'>
-                                <i className="ri-file-fill text-lg"></i>
+                        <div className="flex justify-between items-center">
+                            <div className="flex justify-start items-center p-1">
+                                <div className='p-2'>
+                                    <i className="ri-file-fill text-lg"></i>
+                                </div>
+                                <h1 className="font-semibold">{currFile}</h1>
                             </div>
-                            <h1 className="font-semibold">{currFile}</h1>
+
+                            <div className="flex gap-2 mr-5">
+                                <button onClick={async() => {
+
+                                    const lsProcess = await webContainer?.spawn('ls')
+
+                                    await webContainer?.mount(fileTree)
+
+                                    lsProcess.output.pipeTo(new WritableStream({
+                                        write(chunk) {
+                                            console.log(chunk)
+                                        }
+                                    }))
+
+                                }} className="px-3 py-1 bg-slate-400 font-semibold rounded-md hover:bg-slate-600 hover:text-white">ls</button>
+                                <button onClick={async() => {
+
+                                    await webContainer?.mount(fileTree)
+
+                                    const installProcess = await webContainer?.spawn("npm", ["install"])
+
+                                    installProcess.output.pipeTo(new WritableStream({
+                                        write(chunk) {
+                                            console.log(chunk)
+                                        }
+                                    }))
+                                    
+                                    const runProcess = await webContainer?.spawn("npm", ["start"])
+
+                                    runProcess.output.pipeTo(new WritableStream({
+                                        write(chunk) {
+                                            console.log(chunk)
+                                        }
+                                    }))
+
+                                }} className="px-3 py-1 bg-slate-400 font-semibold rounded-md hover:bg-slate-600 hover:text-white">run</button>
+                            </div>
                         </div>
 
                         <div className="tab-bar flex bg-slate-200 overflow-scroll no-scrollbar">
@@ -270,17 +316,35 @@ const Project = () => {
                         </div>
                     </div>
 
-                    <div className="bottom flex-grow flex flex-col">
-                        {fileTree[currFile] && (<textarea value={fileTree[currFile].file.contents} onChange={(e) => {setFileTree({
-                                ...fileTree,
-                                [currFile]: {
-                                    file: {
-                                        contents: e.target.value
-                                    }
-                                }
-                            })}} className="w-full flex-grow p-3 text-md font-semibold bg-slate-700 text-white"></textarea>)}
+                    <div className="bottom flex-grow flex flex-col no-scollbar">
+                        {fileTree[currFile] && (
+                            <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50 p-1 no-scollbar">
+                                <pre className="hljs h-full no-scollbar">
+                                    <code className="hljs h-full outline-none no-scollbar" contentEditable suppressContentEditableWarning onBlur={(e) => {
+                                            const updatedContent = e.target.innerText;
+                                            const ft = {
+                                                ...fileTree,
+                                                [ currFile ]: {
+                                                    file: {
+                                                        contents: updatedContent
+                                                    }
+                                                }
+                                            }
+                                            setFileTree(ft)
+                                            // saveFileTree(ft)
+                                        }}
+                                        dangerouslySetInnerHTML={{ __html: hljs.highlight('javascript', fileTree[ currFile ].file.contents).value }}
+                                        style={{
+                                            whiteSpace: 'pre-wrap',
+                                            paddingBottom: '25rem',
+                                            counterSet: 'line-numbering',
+                                        }}
+                                    />
+                                </pre>
+                            </div>
+                        )}
                     </div>
-                </div>}
+                </div>
             </section>
 
             {isModalOpen && (
