@@ -124,7 +124,7 @@ const Project = () => {
 
         initializeSocket(project._id)
 
-        if(!webContainer) {
+        if (!webContainer) {
             getWebContainer().then(container => setWebContainer(container))
         }
 
@@ -134,7 +134,7 @@ const Project = () => {
 
             webContainer?.mount(message.fileTree)
 
-            if(message.fileTree) {
+            if (message.fileTree) {
                 setFileTree(message.fileTree)
             }
 
@@ -144,6 +144,7 @@ const Project = () => {
         axios.get(`projects/project/${location.state.project._id}`)
             .then(res => {
                 setProject(res.data.data)
+                setFileTree(res.data.data.fileTree)
             })
             .catch(err => {
                 console.log(err)
@@ -158,6 +159,17 @@ const Project = () => {
             })
 
     }, [location.state.project._id, project._id])
+
+    const saveFileTree = (ft) => {
+
+        axios.put('projects/update-file-tree', { projectId: project._id, fileTree: ft })
+            .then(res => {
+                console.log(res.data)
+            })
+            .catch(err => {
+                console.log(err)
+            })
+    }
 
     // ? ScrollToBottom
     // const scrollToBottom = () => {
@@ -255,7 +267,7 @@ const Project = () => {
                         {Object.keys(fileTree).map((file, index) => (
                             <button key={index} onClick={() => {
                                 setCurrFile(file)
-                                setOpenFiles([ ...new Set([ ...openFiles, file ]) ])
+                                setOpenFiles([...new Set([...openFiles, file])])
                             }} className={`file w-full ${currFile === file ? "bg-slate-600 text-white" : "bg-slate-400"} hover:bg-slate-600 hover:text-white cursor-pointer px-3 py-1`}>
                                 <p className="font-semibold text-start">{file}</p>
                             </button>
@@ -274,7 +286,7 @@ const Project = () => {
                             </div>
 
                             <div className="flex gap-2 mr-5">
-                                <button onClick={async() => {
+                                <button onClick={async () => {
 
                                     const lsProcess = await webContainer?.spawn('ls')
 
@@ -287,7 +299,7 @@ const Project = () => {
                                     }))
 
                                 }} className="px-3 py-1 bg-slate-400 font-semibold rounded-md hover:bg-slate-600 hover:text-white">ls</button>
-                                <button onClick={async() => {
+                                <button onClick={async () => {
 
                                     await webContainer?.mount(fileTree)
 
@@ -299,10 +311,10 @@ const Project = () => {
                                         }
                                     }))
 
-                                    if(runProcess) {
+                                    if (runProcess) {
                                         runProcess.kill()
                                     }
-                                    
+
                                     let tempRunProcess = await webContainer?.spawn("npm", ["start"])
 
                                     tempRunProcess.output.pipeTo(new WritableStream({
@@ -332,23 +344,26 @@ const Project = () => {
                         {fileTree[currFile] && (
                             <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50 p-1 no-scollbar">
                                 <pre className="hljs h-full no-scollbar">
-                                    <code className="hljs h-full outline-none no-scollbar" 
-                                        contentEditable 
-                                        suppressContentEditableWarning 
+                                    <code className="hljs h-full outline-none no-scollbar"
+                                        contentEditable
+                                        suppressContentEditableWarning
                                         onBlur={(e) => {
+
                                             const updatedContent = e.target.innerText;
+
                                             const ft = {
                                                 ...fileTree,
-                                                [ currFile ]: {
+                                                [currFile]: {
                                                     file: {
                                                         contents: updatedContent
                                                     }
                                                 }
                                             }
+
                                             setFileTree(ft)
-                                            // saveFileTree(ft)
+                                            saveFileTree(ft)
                                         }}
-                                        dangerouslySetInnerHTML={{ __html: hljs.highlight('javascript', fileTree[ currFile ].file.contents).value }}
+                                        dangerouslySetInnerHTML={{ __html: hljs.highlight('javascript', fileTree[currFile].file.contents).value }}
                                         style={{
                                             whiteSpace: 'pre-wrap',
                                             paddingBottom: '25rem',
