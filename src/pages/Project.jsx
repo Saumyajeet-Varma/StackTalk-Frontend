@@ -44,6 +44,7 @@ const Project = () => {
     const [openFiles, setOpenFiles] = useState([])
     const [webContainer, setWebContainer] = useState(null)
     const [iFrameUrl, setIFrameUrl] = useState(null)
+    const [runProcess, setRunProcess] = useState(null)
 
     const messageBox = createRef()
 
@@ -297,17 +298,22 @@ const Project = () => {
                                             console.log(chunk)
                                         }
                                     }))
-                                    
-                                    const runProcess = await webContainer?.spawn("npm", ["start"])
 
-                                    runProcess.output.pipeTo(new WritableStream({
+                                    if(runProcess) {
+                                        runProcess.kill()
+                                    }
+                                    
+                                    let tempRunProcess = await webContainer?.spawn("npm", ["start"])
+
+                                    tempRunProcess.output.pipeTo(new WritableStream({
                                         write(chunk) {
                                             console.log(chunk)
                                         }
                                     }))
 
+                                    setRunProcess(tempRunProcess)
+
                                     webContainer.on('server-ready', (port, url) => {
-                                        console.log(port, url)
                                         setIFrameUrl(url)
                                     })
 
@@ -326,7 +332,10 @@ const Project = () => {
                         {fileTree[currFile] && (
                             <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50 p-1 no-scollbar">
                                 <pre className="hljs h-full no-scollbar">
-                                    <code className="hljs h-full outline-none no-scollbar" contentEditable suppressContentEditableWarning onBlur={(e) => {
+                                    <code className="hljs h-full outline-none no-scollbar" 
+                                        contentEditable 
+                                        suppressContentEditableWarning 
+                                        onBlur={(e) => {
                                             const updatedContent = e.target.innerText;
                                             const ft = {
                                                 ...fileTree,
@@ -353,7 +362,12 @@ const Project = () => {
                 </div>
 
                 {iFrameUrl && webContainer && (
-                    <iframe src={iFrameUrl} className="w-full h-full" id='browser-server'></iframe>
+                    <div className="flex flex-col h-full w-full">
+                        <div>
+                            <input type="text" onChange={(e) => setIFrameUrl(e.target.value)} value={iFrameUrl} className="w-full py-1 px-3 bg-slate-200" />
+                        </div>
+                        <iframe src={iFrameUrl} className="w-full h-full" id='browser-server'></iframe>
+                    </div>
                 )}
             </section>
 
