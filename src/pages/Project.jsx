@@ -43,6 +43,7 @@ const Project = () => {
     const [currFile, setCurrFile] = useState(null)
     const [openFiles, setOpenFiles] = useState([])
     const [webContainer, setWebContainer] = useState(null)
+    const [iFrameUrl, setIFrameUrl] = useState(null)
 
     const messageBox = createRef()
 
@@ -305,6 +306,11 @@ const Project = () => {
                                         }
                                     }))
 
+                                    webContainer.on('server-ready', (port, url) => {
+                                        console.log(port, url)
+                                        setIFrameUrl(url)
+                                    })
+
                                 }} className="px-3 py-1 bg-slate-400 font-semibold rounded-md hover:bg-slate-600 hover:text-white">run</button>
                             </div>
                         </div>
@@ -345,6 +351,10 @@ const Project = () => {
                         )}
                     </div>
                 </div>
+
+                {iFrameUrl && webContainer && (
+                    <iframe src={iFrameUrl} className="w-full h-full" id='browser-server'></iframe>
+                )}
             </section>
 
             {isModalOpen && (
