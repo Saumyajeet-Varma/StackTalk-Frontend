@@ -82,21 +82,50 @@ const Project = () => {
             })
     }
 
+    // const sendMessage = () => {
+
+    //     if (!message) {
+    //         return
+    //     }
+
+    //     sendMessageSocket('project-message', {
+    //         message,
+    //         sender: user
+    //     })
+
+    //     setMessages(prevMessages => [...prevMessages, { sender: user, message }])
+
+    //     setMessage("")
+    // }
+
     const sendMessage = () => {
 
-        if (!message) {
-            return
-        }
+        if (!message.trim()) return;
 
-        sendMessageSocket('project-message', {
-            message,
-            sender: user
-        })
+        const msgPayload = {
+            projectId: project._id,
+            sender: {
+                _id: user._id,
+                username: user.username
+            },
+            message
+        };
 
-        setMessages(prevMessages => [...prevMessages, { sender: user, message }])
+        sendMessageSocket('project-message', msgPayload);
 
-        setMessage("")
-    }
+        setMessages(prevMessages => [...prevMessages, msgPayload]);
+
+        setMessage("");
+
+        axios.post('/project-messages/save', msgPayload)
+            .then(() => {
+                console.log('Message saved to DB');
+            })
+            .catch(err => {
+                console.error('Failed to save message:', err);
+            });
+    };
+
 
     const WriteAiMessage = (message) => {
 
@@ -124,6 +153,18 @@ const Project = () => {
                 />
             </div>)
     }
+
+    useEffect(() => {
+
+        axios.get(`/project-messages/${location.state.project._id}`)
+            .then(res => {
+                setMessages(res.data.data);
+            })
+            .catch(err => {
+                console.log(err)
+            });
+    }, []);
+
 
     useEffect(() => {
 
@@ -206,7 +247,7 @@ const Project = () => {
                 <div className="chat-app flex-grow flex flex-col relative bg-slate-200">
                     <div className="flex flex-col flex-grow w-full h-fit">
                         <div ref={messageBox} className="msg-box flex-grow flex flex-col p-2 gap-1 overflow-auto max-h-full">
-                            {messages.map((msg, index) => (
+                            {messages && messages.map((msg, index) => (
                                 <div key={index} className={`${msg.sender._id === 'ai' ? 'max-w-80' : 'max-w-52'} ${msg.sender._id == user._id.toString() && 'ml-auto'}  message flex flex-col p-2 bg-slate-50 w-fit rounded-md`}>
                                     <small className='opacity-65 text-xs'>{msg.sender.username}</small>
                                     {/* <div className={`text-sm`}> */}
