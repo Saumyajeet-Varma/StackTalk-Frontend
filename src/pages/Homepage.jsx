@@ -15,11 +15,9 @@ const Homepage = () => {
     const navigate = useNavigate()
 
     const capitalizeString = (word) => {
-
         if (!word) {
             return ''
         }
-
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     }
 
@@ -78,7 +76,7 @@ const Homepage = () => {
 
             <div className="projects">
                 <div className="flex justify-between items-center p-4 bg-zinc-800">
-                    <div className="flex gap-4 items-end">
+                    <div className="flex gap-4 items-end ml-2">
                         <p className="text-3xl font-semibold text-white">{capitalizeString(user.username)}</p>
                         <p className="text-lg text-zinc-400">{projects.length < 10 ? `Projects: 0${projects.length}` : `Projects: ${projects.length}`}</p>
                     </div>

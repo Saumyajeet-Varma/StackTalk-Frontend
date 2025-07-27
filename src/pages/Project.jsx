@@ -151,15 +151,33 @@ const Project = () => {
 
         const messageHandler = (data) => {
 
-            const message = JSON.parse(data.message)
+            let messageObject = { text: data.message };
 
-            if (message.fileTree) {
-                setFileTree(message.fileTree);
-                saveFileTree(message.fileTree);
-                webContainer?.mount(message.fileTree);
+            try {
+                const parsed = JSON.parse(data.message);
+
+                // Only override if it looks like a message object
+                if (parsed && typeof parsed === 'object') {
+
+                    messageObject = parsed;
+
+                    if (parsed.fileTree) {
+                        setFileTree(parsed.fileTree);
+                        saveFileTree(parsed.fileTree);
+                        webContainer?.mount(parsed.fileTree);
+                    }
+                }
+            }
+            catch (err) {
+                console.log("No Filetree:", data.message);
             }
 
-            setMessages(prevMessages => [...prevMessages, data]);
+            setMessages(prev => [...prev, {
+                ...data,
+                message: messageObject.text,
+                fileTree: messageObject.fileTree || null,
+            }]);
+
         };
 
         receiveMessageSocket('project-message', messageHandler)
@@ -185,7 +203,7 @@ const Project = () => {
             socket.off('project-message', messageHandler);
         };
 
-    }, [location.state.project._id, project._id, webContainer])
+    }, [project._id, webContainer])
 
     useEffect(() => {
 
