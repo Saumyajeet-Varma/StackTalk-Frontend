@@ -14,9 +14,11 @@
     "axios": "^1.9.0",
     "highlight.js": "^11.11.1",
     "markdown-to-jsx": "^7.7.6",
+    "prismjs": "^1.30.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.5.3",
+    "react-simple-code-editor": "^0.14.1",
     "remixicon": "^4.6.0",
     "socket.io-client": "^4.8.1"
   },

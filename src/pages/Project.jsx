@@ -6,6 +6,11 @@ import axios from "../config/axios.js"
 import { initializeSocket, receiveMessageSocket, sendMessageSocket } from "../config/socket.js"
 import { getWebContainer } from "../config/webContainer.js";
 import { UserContext } from "../context/user.context.jsx"
+import Editor from 'react-simple-code-editor';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/themes/prism-tomorrow.css'; // VSCode-like theme
+
 
 window.hljs = hljs;
 
@@ -254,8 +259,8 @@ const Project = () => {
                 </div>
             </section>
 
-            <section className="right h-screen min-w-96 w-3/4 flex">
-                <div className="explorer h-full w-1/5 bg-slate-500 min-w-48 border-x-2 border-slate-600">
+            <section className="right relative h-screen min-w-96 w-3/4 flex">
+                <div className="explorer h-full overflow-scroll no-scrollbar w-1/5 bg-slate-500 min-w-48 border-x-2 border-slate-600 sticky top-0">
                     <div className="explorer-header flex justify-start items-center p-1 bg-slate-300">
                         <div className='p-2'>
                             <i className="ri-folder-fill text-lg"></i>
@@ -264,7 +269,7 @@ const Project = () => {
                     </div>
 
                     <div className="file-tree w-full flex flex-col gap-[1px]">
-                        {Object.keys(fileTree).map((file, index) => (
+                        {fileTree && Object.keys(fileTree)?.map((file, index) => (
                             <button key={index} onClick={() => {
                                 setCurrFile(file)
                                 setOpenFiles([...new Set([...openFiles, file])])
@@ -275,8 +280,8 @@ const Project = () => {
                     </div>
                 </div>
 
-                <div className="code-editor h-full w-4/5 min-w-[500px] flex flex-col">
-                    <div className="top bg-slate-300">
+                <div className="code-editor h-full overflow-scroll no-scrollbar w-4/5 min-w-[500px] flex flex-col">
+                    <div className="top bg-slate-300 sticky top-0">
                         <div className="flex justify-between items-center">
                             <div className="flex justify-start items-center p-1">
                                 <div className='p-2'>
@@ -341,9 +346,9 @@ const Project = () => {
                     </div>
 
                     <div className="bottom flex-grow flex flex-col no-scollbar">
-                        {fileTree[currFile] && (
-                            <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50 p-1 no-scollbar">
-                                <pre className="hljs h-full no-scollbar">
+                        {fileTree && fileTree[currFile] && (
+                            <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50 p-0 no-scollbar">
+                                {/* <pre className="hljs h-full no-scollbar">
                                     <code className="hljs h-full outline-none no-scollbar"
                                         contentEditable
                                         suppressContentEditableWarning
@@ -370,7 +375,33 @@ const Project = () => {
                                             counterSet: 'line-numbering',
                                         }}
                                     />
-                                </pre>
+                                </pre> */}
+                                <Editor
+                                    value={fileTree[currFile].file.contents}
+                                    onValueChange={(updatedContent) => {
+                                        const ft = {
+                                            ...fileTree,
+                                            [currFile]: {
+                                                file: {
+                                                    contents: updatedContent
+                                                }
+                                            }
+                                        };
+
+                                        setFileTree(ft);
+                                        saveFileTree(ft);
+                                    }}
+                                    highlight={(code) =>
+                                        Prism.highlight(code, Prism.languages.javascript, 'javascript')
+                                    }
+                                    padding={12}
+                                    className="h-full font-mono text-sm bg-slate-900 text-white overflow-auto"
+                                    style={{
+                                        minHeight: '100%',
+                                        whiteSpace: 'pre',
+                                        outline: 'none',
+                                    }}
+                                />
                             </div>
                         )}
                     </div>
