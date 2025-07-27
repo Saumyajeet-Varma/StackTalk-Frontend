@@ -9,7 +9,7 @@ import { UserContext } from "../context/user.context.jsx"
 import Editor from 'react-simple-code-editor';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-javascript';
-import 'prismjs/themes/prism-tomorrow.css'; // VSCode-like theme
+import 'prismjs/themes/prism-tomorrow.css';
 
 
 window.hljs = hljs;
@@ -82,21 +82,6 @@ const Project = () => {
             })
     }
 
-    // const sendMessage = () => {
-
-    //     if (!message) {
-    //         return
-    //     }
-
-    //     sendMessageSocket('project-message', {
-    //         message,
-    //         sender: user
-    //     })
-
-    //     setMessages(prevMessages => [...prevMessages, { sender: user, message }])
-    //     setMessage("")
-    // }
-
     const sendMessage = () => {
 
         if (!message.trim()) return;
@@ -112,16 +97,16 @@ const Project = () => {
 
         sendMessageSocket('project-message', msgPayload);
 
-        setMessages(prevMessages => [...prevMessages, msgPayload]);
+        // setMessages(prevMessages => [...prevMessages, msgPayload]);
         setMessage("");
 
-        axios.post('/project-messages/save', msgPayload)
-            .then(() => {
-                console.log('Message saved to DB');
-            })
-            .catch(err => {
-                console.error('Failed to save message:', err);
-            });
+        // axios.post('/project-messages/save', msgPayload)
+        //     .then(() => {
+        //         console.log('Message saved to DB');
+        //     })
+        //     .catch(err => {
+        //         console.error('Failed to save message:', err);
+        //     });
     };
 
 
@@ -158,24 +143,26 @@ const Project = () => {
             return;
         }
 
-        initializeSocket(project._id)
+        const socket = initializeSocket(project._id)
 
         if (!webContainer) {
             getWebContainer().then(container => setWebContainer(container))
         }
 
-        receiveMessageSocket('project-message', data => {
+        const messageHandler = (data) => {
 
-            const message = (JSON.parse(data.message))
+            const message = data.message;
 
             if (message.fileTree) {
-                setFileTree(message.fileTree)
-                saveFileTree(message.fileTree)
-                webContainer?.mount(message.fileTree)
+                setFileTree(message.fileTree);
+                saveFileTree(message.fileTree);
+                webContainer?.mount(message.fileTree);
             }
 
-            setMessages(prevMessages => [...prevMessages, data])
-        })
+            setMessages(prevMessages => [...prevMessages, data]);
+        };
+
+        receiveMessageSocket('project-message', messageHandler)
 
         axios.get(`projects/project/${location.state.project._id}`)
             .then(res => {
@@ -193,6 +180,10 @@ const Project = () => {
             .catch(err => {
                 console.log(err)
             })
+
+        return () => {
+            socket.off('project-message', messageHandler);
+        };
 
     }, [location.state.project._id, project._id, webContainer])
 
