@@ -94,7 +94,6 @@ const Project = () => {
     //     })
 
     //     setMessages(prevMessages => [...prevMessages, { sender: user, message }])
-
     //     setMessage("")
     // }
 
@@ -114,7 +113,6 @@ const Project = () => {
         sendMessageSocket('project-message', msgPayload);
 
         setMessages(prevMessages => [...prevMessages, msgPayload]);
-
         setMessage("");
 
         axios.post('/project-messages/save', msgPayload)
@@ -156,17 +154,9 @@ const Project = () => {
 
     useEffect(() => {
 
-        axios.get(`/project-messages/${location.state.project._id}`)
-            .then(res => {
-                setMessages(res.data.data);
-            })
-            .catch(err => {
-                console.log(err)
-            });
-    }, []);
-
-
-    useEffect(() => {
+        if (!project._id) {
+            return;
+        }
 
         initializeSocket(project._id)
 
@@ -178,10 +168,10 @@ const Project = () => {
 
             const message = (JSON.parse(data.message))
 
-            webContainer?.mount(message.fileTree)
-
             if (message.fileTree) {
                 setFileTree(message.fileTree)
+                saveFileTree(message.fileTree)
+                webContainer?.mount(message.fileTree)
             }
 
             setMessages(prevMessages => [...prevMessages, data])
@@ -204,7 +194,18 @@ const Project = () => {
                 console.log(err)
             })
 
-    }, [location.state.project._id, project._id])
+    }, [location.state.project._id, project._id, webContainer])
+
+    useEffect(() => {
+
+        axios.get(`/project-messages/${location.state.project._id}`)
+            .then(res => {
+                setMessages(res.data.data);
+            })
+            .catch(err => {
+                console.log(err)
+            });
+    }, [location.state.project._id]);
 
     const saveFileTree = (ft) => {
 
@@ -229,7 +230,6 @@ const Project = () => {
     //     }
     // }, []);
 
-
     return (
         <main className="h-screen w-screen flex">
 
@@ -244,7 +244,7 @@ const Project = () => {
                     </button>
                 </div>
 
-                <div className="chat-app flex-grow flex flex-col relative bg-slate-200">
+                <div className="chat-app flex-grow flex flex-col relative bg-slate-200 overflow-scroll no-scrollbar">
                     <div className="flex flex-col flex-grow w-full h-fit">
                         <div ref={messageBox} className="msg-box flex-grow flex flex-col p-2 gap-1 overflow-auto max-h-full">
                             {messages && messages.map((msg, index) => (
