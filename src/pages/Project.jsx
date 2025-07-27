@@ -49,7 +49,7 @@ const Project = () => {
     const [openFiles, setOpenFiles] = useState([])
     const [webContainer, setWebContainer] = useState(null)
     const [iFrameUrl, setIFrameUrl] = useState(null)
-    const [runProcess, setRunProcess] = useState(null)
+    // const [runProcess, setRunProcess] = useState(null)
 
     const messageBox = createRef()
 
@@ -151,7 +151,7 @@ const Project = () => {
 
         const messageHandler = (data) => {
 
-            const message = data.message;
+            const message = JSON.parse(data.message)
 
             if (message.fileTree) {
                 setFileTree(message.fileTree);
@@ -322,7 +322,7 @@ const Project = () => {
                                 <h1 className="font-semibold">{currFile}</h1>
                             </div>
 
-                            <div className="flex gap-2 mr-5">
+                            {/* <div className="flex gap-2 mr-5">
                                 <button onClick={async () => {
 
                                     const lsProcess = await webContainer?.spawn('ls')
@@ -367,7 +367,7 @@ const Project = () => {
                                     })
 
                                 }} className="px-3 py-1 bg-slate-400 font-semibold rounded-md hover:bg-slate-600 hover:text-white">run</button>
-                            </div>
+                            </div> */}
                         </div>
 
                         <div className="tab-bar flex bg-slate-200 overflow-scroll no-scrollbar">
@@ -380,34 +380,6 @@ const Project = () => {
                     <div className="bottom flex-grow flex flex-col no-scollbar">
                         {fileTree && fileTree[currFile] && (
                             <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50 p-0 no-scollbar">
-                                {/* <pre className="hljs h-full no-scollbar">
-                                    <code className="hljs h-full outline-none no-scollbar"
-                                        contentEditable
-                                        suppressContentEditableWarning
-                                        onBlur={(e) => {
-
-                                            const updatedContent = e.target.innerText;
-
-                                            const ft = {
-                                                ...fileTree,
-                                                [currFile]: {
-                                                    file: {
-                                                        contents: updatedContent
-                                                    }
-                                                }
-                                            }
-
-                                            setFileTree(ft)
-                                            saveFileTree(ft)
-                                        }}
-                                        dangerouslySetInnerHTML={{ __html: hljs.highlight('javascript', fileTree[currFile].file.contents).value }}
-                                        style={{
-                                            whiteSpace: 'pre-wrap',
-                                            paddingBottom: '25rem',
-                                            counterSet: 'line-numbering',
-                                        }}
-                                    />
-                                </pre> */}
                                 <Editor
                                     value={fileTree[currFile].file.contents}
                                     onValueChange={(updatedContent) => {
