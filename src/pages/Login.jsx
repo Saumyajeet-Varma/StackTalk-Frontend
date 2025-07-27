@@ -17,8 +17,13 @@ const Login = () => {
 
         axios.post('/users/login', { email, password })
             .then(res => {
-                localStorage.setItem('token', res.data.data.token)
-                setUser(res.data.data.user)
+                const token = res.data.data.token
+                const user = res.data.data.user
+
+                localStorage.setItem('token', token)
+                localStorage.setItem('user', user)
+
+                setUser(user)
 
                 navigate('/')
             })
