@@ -8,7 +8,9 @@ const Homepage = () => {
     const { user, setUser } = useContext(UserContext)
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
+    const [projectToDelete, setProjectToDelete] = useState(null)
     const [projectName, setProjectName] = useState(null)
     const [projects, setProjects] = useState([])
 
@@ -30,11 +32,32 @@ const Homepage = () => {
             })
             .catch(error => {
                 console.log(error)
+                // alert("Failed to create project");
             })
             .finally(() => {
                 setIsCreateModalOpen(false)
                 setProjectName(null)
             })
+    }
+
+    const deleteProject = (e) => {
+
+        e.preventDefault();
+
+        axios.delete(`/projects/delete/${projectToDelete._id}`)
+            .then(res => {
+                console.log(res.data.message);
+                setProjects(prev => prev.filter(p => p._id !== projectToDelete._id));
+            })
+            .catch(error => {
+                console.error("Delete failed:", error);
+                // alert("Failed to delete project");
+            })
+            .finally(() => {
+                setIsDeleteModalOpen(false);
+                setProjectToDelete(null);
+            });
+
     }
 
     const handleLogout = (e) => {
@@ -106,6 +129,22 @@ const Homepage = () => {
                                 <p><small><i className="ri-user-line"></i> Collaborators</small> :</p>
                                 {project.users.length < 10 ? `0${project.users.length}` : project.users.length}
                             </div>
+
+                            <hr />
+
+                            <div className="flex justify-end">
+                                <button
+                                    className=" text-red-500 hover:text-red-700 font-semibold"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setProjectToDelete(project);
+                                        setIsDeleteModalOpen(true);
+                                    }}
+                                >
+                                    {/* <i className="ri-delete-bin-line"></i> */}
+                                    Delete
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -127,6 +166,20 @@ const Homepage = () => {
                             <div className="flex justify-end">
                                 <button type="button" className="mr-2 px-4 py-2 bg-gray-300 rounded-md" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
                                 <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md">Create</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {isDeleteModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white p-6 rounded-md shadow-md w-1/3">
+                        <h2 className="text-xl mb-4">Confirm Delete ?</h2>
+                        <form onSubmit={deleteProject}>
+                            <div className="flex justify-end">
+                                <button type="button" className="mr-2 px-4 py-2 bg-gray-300 rounded-md" onClick={() => setIsDeleteModalOpen(false)}>Cancel</button>
+                                <button type="submit" className="px-4 py-2 bg-red-600 text-white rounded-md">Delete</button>
                             </div>
                         </form>
                     </div>

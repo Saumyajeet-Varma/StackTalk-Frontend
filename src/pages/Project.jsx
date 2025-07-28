@@ -14,7 +14,6 @@ import 'prismjs/themes/prism-tomorrow.css';
 
 window.hljs = hljs;
 
-// TODO: SyntaxHighlightedCode
 function SyntaxHighlightedCode(props) {
 
     const ref = useRef(null)
@@ -156,7 +155,6 @@ const Project = () => {
             try {
                 const parsed = JSON.parse(data.message);
 
-                // Only override if it looks like a message object
                 if (parsed && typeof parsed === 'object') {
 
                     messageObject = parsed;
@@ -331,7 +329,7 @@ const Project = () => {
                 </div>
 
                 <div className="code-editor h-full overflow-scroll no-scrollbar w-4/5 min-w-[500px] flex flex-col">
-                    <div className="top bg-slate-300 sticky top-0">
+                    <div className="top bg-slate-300 sticky top-0 z-10">
                         <div className="flex justify-between items-center">
                             <div className="flex justify-start items-center p-1">
                                 <div className='p-2'>
