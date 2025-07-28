@@ -40,6 +40,7 @@ const Project = () => {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [selectedUserId, setSelectedUserId] = useState(new Set())
     const [users, setUsers] = useState([])
+    const [searchUser, setSearchUser] = useState("");
     const [project, setProject] = useState(location.state.project)
     const [message, setMessage] = useState('')
     const [messages, setMessages] = useState([])
@@ -51,6 +52,8 @@ const Project = () => {
     // const [runProcess, setRunProcess] = useState(null)
 
     const messageBox = createRef()
+
+    const filterUsers = users.filter(user => user.username.toLowerCase().includes(searchUser.toLowerCase()) || user.email.toLowerCase().includes(searchUser.toLowerCase()))
 
     const handleUserClick = (id) => {
 
@@ -442,17 +445,30 @@ const Project = () => {
                     <div className="bg-white p-4 rounded-md w-96 max-w-full relative">
                         <header className='flex justify-between items-center mb-4'>
                             <h2 className='text-xl font-semibold'>Select User</h2>
-                            <button onClick={() => setIsModalOpen(false)} className='p-2'>
+                            <button className='p-2' onClick={() => {
+                                setIsModalOpen(false);
+                                setSearchUser("")
+                            }}>
                                 <i className="ri-close-fill"></i>
                             </button>
                         </header>
+                        <input
+                            type="text"
+                            value={searchUser}
+                            onChange={(e) => setSearchUser(e.target.value)}
+                            placeholder="Search by username or email"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md mb-3 outline-none focus:ring-2 focus:ring-blue-500"
+                        />
                         <div className="users-list flex flex-col gap-2 mb-16 max-h-96 overflow-auto">
-                            {users.map(user => (
+                            {filterUsers.map(user => (
                                 <div key={user._id} className={`user cursor-pointer hover:bg-slate-200  p-2 flex gap-2 items-center ${Array.from(selectedUserId).indexOf(user._id) != -1 ? 'bg-slate-200' : ""}`} onClick={() => handleUserClick(user._id)}>
                                     <div className='aspect-square relative rounded-full w-fit h-fit flex items-center justify-center p-5 text-white bg-slate-600'>
                                         <i className="ri-user-fill absolute"></i>
                                     </div>
-                                    <h1 className='font-semibold text-lg'>{user.username}</h1>
+                                    <div>
+                                        <h1 className='font-semibold text-lg'>{user.username}</h1>
+                                        <h1 className='font-normal text-sm text-slate-500 -mt-2'>{user.email}</h1>
+                                    </div>
                                 </div>
                             ))}
                         </div>
